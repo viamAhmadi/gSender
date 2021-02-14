@@ -1,3 +1,3 @@
 # gSender
-go run cmd/* <br/>
+go run cmd/* -c 99999 <br/>
 go run cmd/* -help
