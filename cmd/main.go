@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	gConn "github.com/viamAhmadi/gReceiver2/pkg/conn"
+	"github.com/viamAhmadi/gReceiver2/pkg/util"
 	"github.com/viamAhmadi/gSender/pkg/conn"
 	"io/ioutil"
 	"math/rand"
@@ -27,7 +28,7 @@ func randomString(n int) string {
 func main() {
 	addrBroker := flag.String("b", "tcp://127.0.0.1:5555", "Broker address")
 	addrDes := flag.String("d", "tcp://127.0.0.3:5555", "Destination of messages")
-	msgCount := flag.Int("c", 10000, "Number of messages, MAX=50K")
+	msgCount := flag.Int("c", 10000, "Number of messages, MAX=99K")
 	connId := flag.String("i", "generate", "Connection id, REQUIRE_LEN=20")
 	flag.Parse()
 
@@ -64,11 +65,11 @@ func main() {
 				}
 				fmt.Printf("FACTOR\t\tsuccessful: %s\tlost: %d\n", result, len(*f.List))
 				//c.Close()
-			case <-time.After(4 * time.Second):
+			case <-time.After(util.CalculateTimeout(4, c.Count)): // 4
 				if c.Factor == nil {
 					fmt.Println("failed")
 				}
-				fmt.Println("\n\ntimeout 4 sec")
+				fmt.Println("\n\ntimeout")
 				c.Close()
 				return
 			}
@@ -81,9 +82,14 @@ func main() {
 }
 
 func sendMsg(c *conn.SendConn, data []byte) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
 	sent := 0
 	for i := 1; i <= c.Count; i++ {
-		if i == 10000 || i == 20000 || i == 30000 {
+		if i == 10000 || i == 30000 || i == 50000 || i == 70000 || i == 90000 {
 			time.Sleep(1 * time.Second)
 		}
 		size := rand.Intn((8192 - 50 + 1) + 50)
